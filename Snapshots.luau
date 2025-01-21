@@ -1,4 +1,5 @@
 --!strict
+
 local RunService = game:GetService("RunService")
 local clock = os.clock
 
@@ -17,8 +18,10 @@ export type Snapshot<T> = {
 	},
 	
 	-- methods
-	push: <T>(self: Snapshot<T>, o: T) -> ()
+	push: (self: Snapshot<T>, o: T) -> (),
+	get: (self: Snapshot<T>, accuratePing: number) -> T
 }
+
 local lifetime = 150
 local fps = 0
 RunService.Heartbeat:Connect(function(dt)
