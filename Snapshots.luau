@@ -1,3 +1,4 @@
+--!strict
 local RunService = game:GetService("RunService")
 local clock = os.clock
 
@@ -5,7 +6,7 @@ local Snapshot = {}
 Snapshot.__index = Snapshot
 
 type datetime = number
-export type Snapshot<T> = {
+export type Snapshot = {
 	-- fields
 	_subject: Player?,
 	_cache: {
@@ -16,23 +17,23 @@ export type Snapshot<T> = {
 	},
 	
 	-- methods
-	push: (self: Snapshot<T>, o: T) -> (),
-	get: (self: Snapshot<T>, accuratePing: number) -> T,
-	destroy: (self: Snapshot<T>) -> (),
+	push: <T>(self: Snapshot, o: T) -> (),
+	get: <T>(self: Snapshot, accuratePing: number) -> T,
+	destroy: (self: Snapshot) -> (),
 }
 
-local lifetime = 150
+local lifetime = .15
 local fps = 0
 RunService.Heartbeat:Connect(function(dt)
 	fps = 1/dt
 end)
 
 local snapshotInstances = {}
-function Snapshot.getSnapshotInstance<T>(player: Player): Snapshot<T>
+function Snapshot.getSnapshotInstance(player: Player): Snapshot
 	return snapshotInstances[player] or Snapshot.registerPlayer(player)
 end
 
-function Snapshot.registerPlayer<T>(player: Player)
+function Snapshot.registerPlayer(player: Player)
 	local snapshot = Snapshot.new(player)
 	snapshotInstances[player] = snapshot
 	
@@ -50,11 +51,12 @@ function Snapshot.deregisterPlayer(player: Player)
 end
 
 function Snapshot.getAccuratePing(player: Player): number
+	print(player:GetNetworkPing(), fps)
 	return player:GetNetworkPing() + (1 / fps) + (1 / 60)
 end
 
-function Snapshot.new<T>(subject: Player): Snapshot<T>
-	local self = setmetatable({}, Snapshot) :: Snapshot<T>
+function Snapshot.new(subject: Player): Snapshot
+	local self = setmetatable({}, Snapshot) :: Snapshot
 	
 	self._subject = subject
 	self._cache = {}
@@ -62,22 +64,21 @@ function Snapshot.new<T>(subject: Player): Snapshot<T>
 	return self
 end
 
-function Snapshot.push<T>(self: Snapshot<T>, o: T): ()
+function Snapshot.push<T>(self: Snapshot, o: T): ()
 	local current = clock()
 	
 	local new = {}
-	for i = #self._cache, 1, -1 do
-		local v = self._cache[i]
+	-- TODO REVISE THIS
+	for _, v in self._cache do
 		if current - v.d <= lifetime then
 			table.insert(
 				new,
 				v
 			)
-		else
-			break -- we can stop iterating because every entry after will be too old
 		end
 	end
 	self._cache = new
+	print(#self._cache, "AFTER SANITY CHECK")
 	
 	table.insert(
 		self._cache,
@@ -88,7 +89,8 @@ function Snapshot.push<T>(self: Snapshot<T>, o: T): ()
 	)
 end
 
-function Snapshot.get<T>(self: Snapshot<T>, accuratePing: number): T
+function Snapshot.get<T>(self: Snapshot, accuratePing: number): T
+	print(self._subject, accuratePing)
 	local l = #self._cache
 	if l == 0 then return nil
 	elseif l == 1 or accuratePing > lifetime then return self._cache[l].o end
@@ -101,6 +103,8 @@ function Snapshot.get<T>(self: Snapshot<T>, accuratePing: number): T
 		
 		local diff_l = current - latest.d
 		local diff_e = current - earliest.d
+		
+		print(diff_l, diff_e)
 		
 		if accuratePing <= diff_l then return latest.o end -- is the ping lower than the latest entry
 		if i == 1 and accuratePing > diff_e then return self._cache[i].o end -- is the player's ping higher than the lifetime 
@@ -121,7 +125,7 @@ function Snapshot.get<T>(self: Snapshot<T>, accuratePing: number): T
 	return nil
 end
 
-function Snapshot.destroy<T>(self: Snapshot<T>): ()
+function Snapshot.destroy<T>(self: Snapshot): ()
 	self._subject = nil
 	table.clear(self._cache)
 	
