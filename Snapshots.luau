@@ -2,23 +2,13 @@
 local RunService = game:GetService("RunService")
 local clock = os.clock
 
-local fps = 0
-RunService.Heartbeat:Connect(function(dt)
-	fps = 1/dt
-end)
-
 local Snapshot = {}
 Snapshot.__index = Snapshot
-
-function Snapshot.getAccuratePing(player: Player): number
-	return player:GetNetworkPing() + (1 / fps) + (1 / 60) -- thanks for the heads up, @ffrostfall!
-end
 
 type datetime = number
 export type Snapshot<T> = {
 	-- fields
 	_subject: Player,
-	_lifetime: number,
 	_cache: {
 		{
 			o: T,
@@ -29,12 +19,32 @@ export type Snapshot<T> = {
 	-- methods
 	push: <T>(self: Snapshot<T>, o: T) -> ()
 }
+local lifetime = 150
+local fps = 0
+RunService.Heartbeat:Connect(function(dt)
+	fps = 1/dt
+end)
 
-function Snapshot.new<T>(subject: Player, lifetime: number): Snapshot<T>
+local snapshotInstances = {}
+function Snapshot.getSnapshotInstance<T>(player: Player): Snapshot<T>
+	return snapshotInstances[player] or Snapshot.registerPlayer(player)
+end
+
+function Snapshot.registerPlayer<T>(player: Player)
+	local snapshot = Snapshot.new(player)
+	snapshotInstances[player] = snapshot
+	
+	return snapshot
+end
+
+function Snapshot.getAccuratePing(player: Player): number
+	return player:GetNetworkPing() + (1 / fps) + (1 / 60)
+end
+
+function Snapshot.new<T>(subject: Player): Snapshot<T>
 	local self = setmetatable({}, Snapshot) :: Snapshot<T>
 	
 	self._subject = subject
-	self._lifetime = lifetime
 	self._cache = {}
 	
 	return self
@@ -46,7 +56,7 @@ function Snapshot.push<T>(self: Snapshot<T>, o: T): ()
 	local new = {}
 	for i = #self._cache, 1, -1 do
 		local v = self._cache[i]
-		if current - v.d <= self._lifetime then
+		if current - v.d <= lifetime then
 			table.insert(
 				new,
 				v
@@ -69,7 +79,7 @@ end
 function Snapshot.get<T>(self: Snapshot<T>, accuratePing: number): T
 	local l = #self._cache
 	if l == 0 then return nil
-	elseif l == 1 or accuratePing > self._lifetime then return self._cache[l].o end
+	elseif l == 1 or accuratePing > lifetime then return self._cache[l].o end
 	
 	local current = clock()
 	
