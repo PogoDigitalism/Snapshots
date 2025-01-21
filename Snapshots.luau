@@ -1,5 +1,3 @@
---!strict
-
 local RunService = game:GetService("RunService")
 local clock = os.clock
 
@@ -44,7 +42,11 @@ end
 
 function Snapshot.deregisterPlayer(player: Player)
 	-- TODO add destroy:
-	snapshotInstances[player] = nil
+	local snapshot = snapshotInstances[player]
+	if snapshot then
+		snapshotInstances[player] = nil
+		snapshot:destroy()
+	end
 end
 
 function Snapshot.getAccuratePing(player: Player): number
