@@ -1,4 +1,4 @@
-⚠️ unstable, has variety of bugs
+⚠️ not rigoursly tested, but studio-based tests have passed
 # Snapshots
 My implementation of a snapshot system in Luau (primarily for lag compensation)
 
