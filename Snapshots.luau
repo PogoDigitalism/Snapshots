@@ -9,7 +9,7 @@ Snapshot.__index = Snapshot
 type datetime = number
 export type Snapshot<T> = {
 	-- fields
-	_subject: Player,
+	_subject: Player?,
 	_cache: {
 		{
 			o: T,
@@ -19,7 +19,8 @@ export type Snapshot<T> = {
 	
 	-- methods
 	push: (self: Snapshot<T>, o: T) -> (),
-	get: (self: Snapshot<T>, accuratePing: number) -> T
+	get: (self: Snapshot<T>, accuratePing: number) -> T,
+	destroy: (self: Snapshot<T>) -> (),
 }
 
 local lifetime = 150
@@ -38,6 +39,12 @@ function Snapshot.registerPlayer<T>(player: Player)
 	snapshotInstances[player] = snapshot
 	
 	return snapshot
+end
+
+
+function Snapshot.deregisterPlayer(player: Player)
+	-- TODO add destroy:
+	snapshotInstances[player] = nil
 end
 
 function Snapshot.getAccuratePing(player: Player): number
@@ -110,6 +117,15 @@ function Snapshot.get<T>(self: Snapshot<T>, accuratePing: number): T
 		end
 	end
 	return nil
+end
+
+function Snapshot.destroy<T>(self: Snapshot<T>): ()
+	self._subject = nil
+	table.clear(self._cache)
+	
+	setmetatable(self, nil)
+	table.clear(self)
+	table.freeze(self :: {})
 end
 
 return Snapshot
