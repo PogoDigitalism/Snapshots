@@ -98,7 +98,6 @@ function Snapshot.get<T>(self: Snapshot, accuratePing: number): T
 		print(diff_l, diff_e)
 		
 		if accuratePing <= diff_l then return latest.o end -- is the ping lower than the latest entry
-		if i == 1 and accuratePing > diff_e then return self._cache[i].o end -- is the player's ping higher than the lifetime 
 		
 		if accuratePing <= diff_e then -- is the ping lower than the earliest entry, then its between latest and earlier, so lerp
 			if typeof(latest.o) == "CFrame" then
