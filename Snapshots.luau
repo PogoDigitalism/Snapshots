@@ -40,7 +40,6 @@ function Snapshot.registerPlayer(player: Player)
 	return snapshot
 end
 
-
 function Snapshot.deregisterPlayer(player: Player)
 	-- TODO add destroy:
 	local snapshot = snapshotInstances[player]
@@ -48,11 +47,6 @@ function Snapshot.deregisterPlayer(player: Player)
 		snapshotInstances[player] = nil
 		snapshot:destroy()
 	end
-end
-
-function Snapshot.getAccuratePing(player: Player): number
-	print(player:GetNetworkPing(), fps)
-	return player:GetNetworkPing() + (1 / fps) + (1 / 60)
 end
 
 function Snapshot.new(subject: Player): Snapshot
@@ -78,7 +72,6 @@ function Snapshot.push<T>(self: Snapshot, o: T): ()
 		end
 	end
 	self._cache = new
-	print(#self._cache, "AFTER SANITY CHECK")
 	
 	table.insert(
 		self._cache,
