@@ -86,7 +86,7 @@ function Snapshot.get<T>(self: Snapshot, accuratePing: number): T
 	print(self._subject, accuratePing)
 	local l = #self._cache
 	if l == 0 then return nil
-	elseif l == 1 or accuratePing > lifetime then return self._cache[l].o end
+	elseif l == 1 or accuratePing > lifetime then return self._cache[1].o end
 	
 	local current = clock()
 	
