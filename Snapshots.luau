@@ -41,7 +41,6 @@ function Snapshot.registerPlayer(player: Player)
 end
 
 function Snapshot.deregisterPlayer(player: Player)
-	-- TODO add destroy:
 	local snapshot = snapshotInstances[player]
 	if snapshot then
 		snapshotInstances[player] = nil
@@ -62,7 +61,6 @@ function Snapshot.push<T>(self: Snapshot, o: T): ()
 	local current = clock()
 	
 	local new = {}
-	-- TODO REVISE THIS
 	for _, v in self._cache do
 		if current - v.d <= lifetime then
 			table.insert(
