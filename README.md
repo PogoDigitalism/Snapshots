@@ -15,7 +15,7 @@ ReplicationPackets.ReplicatePosition.listen(function(data: CFrame, player: Playe
 end)
 
 function UptodatePositions.getCFrame(invoker: Player, target: Player): CFrame
-  local ping = Snapshots.getAccuratePing(invoker)
+  local ping = ... -- get ping from your accurate latency module (so NOT :GetNetworkPing())
   local playerSnapshot = Snapshots.getSnapshotInstance(target)
 
   return playerSnapshot:get(ping)
