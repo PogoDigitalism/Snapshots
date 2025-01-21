@@ -97,9 +97,8 @@ function Snapshot.get<T>(self: Snapshot, accuratePing: number): T
 		
 		print(diff_l, diff_e)
 		
-		if accuratePing <= diff_l then return latest.o end -- is the ping lower than the latest entry
-		
-		if accuratePing <= diff_e then -- is the ping lower than the earliest entry, then its between latest and earlier, so lerp
+		if accuratePing <= diff_l then return latest.o -- is the ping lower than the latest entry
+		elseif accuratePing <= diff_e then -- is the ping lower than the earliest entry, then its between latest and earlier, so lerp
 			if typeof(latest.o) == "CFrame" then
 				local cframe_l: CFrame = latest.o
 				local cframe_e: CFrame = earliest.o
